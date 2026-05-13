@@ -1,5 +1,6 @@
 import cantools
 import cantools.database
+import cantools.database.conversion
 
 from .signal_db import SignalDB, SignalDef
 
@@ -47,11 +48,16 @@ def export_dbc(path: str, signal_db: SignalDB) -> dict:
     messages = []
     for can_id, sigs in by_id.items():
         max_bit = max(s.start_bit + s.length for s in sigs)
-        dlc = max(1, (max_bit + 7) // 8)
+        dlc = max(8, (max_bit + 7) // 8)
 
         can_signals = []
         for sig in sigs:
             sig_name = sig.name.split(".")[-1] if "." in sig.name else sig.name
+            conversion = cantools.database.conversion.LinearConversion(
+                scale=sig.scale,
+                offset=sig.offset,
+                is_float=False,
+            )
             can_signals.append(
                 cantools.database.Signal(
                     name=sig_name,
@@ -59,8 +65,7 @@ def export_dbc(path: str, signal_db: SignalDB) -> dict:
                     length=sig.length,
                     byte_order=sig.byte_order,
                     is_signed=sig.value_type == "signed",
-                    scale=sig.scale,
-                    offset=sig.offset,
+                    conversion=conversion,
                     unit=sig.unit or None,
                     comment=sig.description or None,
                 )

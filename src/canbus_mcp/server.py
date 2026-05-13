@@ -187,14 +187,24 @@ def disconnect() -> dict:
 # Capture tools
 # ---------------------------------------------------------------------------
 
+def _flush_hw_buffer() -> None:
+    """Drain the hardware receive queue without storing any frames."""
+    while _iface.recv(timeout=0.0) is not None:
+        pass
+
+
 def _capture_sync(duration: float, filter_ids: Optional[list[int]]) -> list[Frame]:
     _require_connection()
+    _flush_hw_buffer()
     frames: list[Frame] = []
     end_time = time.monotonic() + duration
 
     while time.monotonic() < end_time:
-        msg = _iface.recv(timeout=0.05)
-        if msg and not msg.is_error_frame:
+        msg = _iface.recv(timeout=0.0)
+        if msg is None:
+            time.sleep(0.001)
+            continue
+        if not msg.is_error_frame:
             if filter_ids is None or msg.arbitration_id in filter_ids:
                 frame = Frame(
                     timestamp=msg.timestamp,
@@ -265,6 +275,8 @@ def clear_capture() -> dict:
     """Clear all captured frames from the internal buffer. Does not affect snapshots."""
     count = len(_store.frames)
     _store.clear()
+    if _iface.is_connected:
+        _flush_hw_buffer()
     return {"cleared_frames": count}
 
 
