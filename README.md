@@ -7,7 +7,6 @@ Built around the PEAK PCAN-USB adapter. Designed for reverse engineering unknown
 ## Hardware
 
 - [PEAK PCAN-USB](https://www.peak-system.com/PCAN-USB.199.0.html) (IPEH-002021)
-- A 120Ω termination resistor (required for bench setups)
 
 ## Requirements
 
@@ -93,10 +92,6 @@ check_obd2_support()    # check which PIDs are available
 read_obd2_pids()        # query RPM, speed, throttle, temps, etc.
 ```
 
-### Bench setup note
-
-CAN bus requires 120Ω termination between CAN_H and CAN_L at each end of the bus. On the bench with just one device and the PCAN-USB, you need one 120Ω resistor placed across CAN_H and CAN_L. Without it, signal levels will be too low for reliable communication.
-
 ## Tools
 
 | Tool | Description |
@@ -119,24 +114,3 @@ CAN bus requires 120Ω termination between CAN_H and CAN_L at each end of the bu
 | `read_obd2_pids` | Query all standard OBD2 PIDs |
 | `query_obd2_pid` | Send a raw OBD2 request |
 
-## Connector reference: Bosch MM5.10 IMU (BMW S1000R)
-
-Part number: 61351686601-01
-
-```
-Connector face (looking into wire entry side):
-
-┌─────────────────┐
-│  [1]      [3]   │
-│                 │
-│  [2]      [4]   │
-└─────────────────┘
-
-Pin 1: 12V supply
-Pin 2: GND
-Pin 3: CAN_L
-Pin 4: CAN_H
-```
-
-CAN bus: 500kbps. Outputs roll/pitch/yaw rates and 3-axis acceleration at ~100Hz.
-Requires 120Ω termination to transmit.
